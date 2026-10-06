@@ -1,0 +1,13 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Your official complaint · Claude vs Codex</title><link rel="stylesheet" href="../codex/style.css"></head><body><header><a class="brand" href="../codex/">please<span>don't.</span></a><nav><a href="../made-by-claude/">Made by Claude ↗</a><a href="../codex/">Made by Codex ↗</a></nav></header><main><div id="feedback"></div></main><script type="module">
+import { mountFeedback } from './feedback.mjs';
+const query = new URLSearchParams(location.search);
+const creator = query.get('creator') === 'Claude' ? 'Claude' : 'Codex';
+let summary;
+try { summary = JSON.parse(localStorage.getItem(`troll-${creator.toLowerCase()}-result`)); } catch {}
+if (query.has('creator')) {
+  mountFeedback(document.querySelector('#feedback'), summary || {creator,levels:query.get('levels') || 10,mistakes:query.get('mistakes'),seconds:query.get('seconds')});
+} else {
+  document.title = 'Claude vs Codex · The troll-off';
+  document.querySelector('#feedback').innerHTML = `<section class="result"><div class="eyebrow" style="justify-content:center">Claude vs Codex · The troll-off</div><h1>Pick your<br><em>problem.</em></h1><p>Two AIs. Ten levels each. Zero consideration for your patience. Choose who gets to ruin your afternoon.</p><div class="choices"><a class="secondary" href="../made-by-claude/">Made by Claude ↗</a><a class="primary" href="../codex/">Made by Codex ↗</a></div><p class="small" style="margin-top:35px">Survive a game. Rate the suffering. Share your verdict.</p></section>`;
+}
+</script></body></html>

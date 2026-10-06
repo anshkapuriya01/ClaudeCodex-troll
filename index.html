@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f4f2ec">
+  <meta name="color-scheme" content="light">
+  <title>Bad Idea — Claude vs Codex</title>
+  <meta name="description" content="Claude and Codex each built a 10-level game that breaks every rule of UX — on purpose. Pick a side. Keep your temper.">
+  <meta property="og:title" content="Bad Idea — Claude vs Codex">
+  <meta property="og:description" content="Two AIs. Twenty levels. Zero mercy. Beautiful interfaces, terrible intentions.">
+  <meta property="og:image" content="https://claude-codex.anshkapuriya.in/shared/assets/ai-rivals.webp">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="shared/home.css">
+</head>
+<body>
+  <header class="top">
+    <a class="wordmark" href="./">bad idea<span>.</span></a>
+    <div class="scoreline" aria-label="UX rules broken">
+      <span class="live"></span> UX rules broken <b id="broken">0</b><span class="of">/ 20</span>
+    </div>
+    <a class="top-link" href="#how">How it works</a>
+  </header>
+
+  <main>
+    <section class="hero">
+      <p class="eyebrow"><span>The AI troll-off</span><span class="sep">·</span><span>Season 1</span></p>
+      <h1>Beautifully designed.<br><em>Deeply</em> unhelpful.</h1>
+      <p class="lede">Claude and Codex each built a 10-level game that breaks every rule of UX — on purpose. Pick a side. Keep your temper.</p>
+    </section>
+
+    <section class="arena" id="arena" aria-label="Choose a game">
+      <a class="fighter claude" href="made-by-claude/" data-side="claude">
+        <div class="fighter-top">
+          <span class="tag">Made by</span>
+          <span class="tag">10 levels</span>
+        </div>
+        <h2>Claude</h2>
+        <p class="taunt">Polite on the outside.<br>A menace underneath.</p>
+        <ul class="crimes">
+          <li>Buttons with commitment issues</li>
+          <li>Cookies where green means off</li>
+          <li>Popups that multiply when closed</li>
+        </ul>
+        <div class="record" data-record="claude">Unplayed. Lucky you.</div>
+        <span class="cta">Play Claude’s game <i>→</i></span>
+      </a>
+
+      <div class="ring" aria-hidden="true">
+        <img src="shared/assets/ai-rivals.webp" width="1536" height="1024" alt="" fetchpriority="high">
+        <div class="vs">vs</div>
+        <button class="dice" id="dice" type="button">Can’t decide? <span>🎲</span></button>
+      </div>
+
+      <a class="fighter codex" href="codex/" data-side="codex">
+        <div class="fighter-top">
+          <span class="tag">Made by</span>
+          <span class="tag">10 levels</span>
+        </div>
+        <h2>Codex</h2>
+        <p class="taunt">Every button is<br>a trust exercise.</p>
+        <ul class="crimes">
+          <li>Sliders that run backwards</li>
+          <li>Words in the wrong colour</li>
+          <li>An exit interview with no exit</li>
+        </ul>
+        <div class="record" data-record="codex">Unplayed. Lucky you.</div>
+        <span class="cta">Play Codex’s game <i>→</i></span>
+      </a>
+    </section>
+
+    <section class="marquee" aria-label="Crimes against UX">
+      <div class="track">
+        <span>Buttons that run away</span><span>Inverted scrolling</span><span>Green means off</span><span>Double negatives</span><span>Fake progress bars</span><span>Popups that multiply</span><span>Text that reads backwards</span><span>Sliders that lie</span><span>Confirmshaming</span><span>Unskippable skip buttons</span>
+        <span>Buttons that run away</span><span>Inverted scrolling</span><span>Green means off</span><span>Double negatives</span><span>Fake progress bars</span><span>Popups that multiply</span><span>Text that reads backwards</span><span>Sliders that lie</span><span>Confirmshaming</span><span>Unskippable skip buttons</span>
+      </div>
+    </section>
+
+    <section class="how" id="how">
+      <div class="how-head">
+        <h3>How it works</h3>
+        <p>Three steps. The second one is the problem.</p>
+      </div>
+      <ol class="steps">
+        <li><b>01</b><h4>Pick an AI</h4><p>Both games look calm, clean and trustworthy. That’s the first trick.</p></li>
+        <li><b>02</b><h4>Survive 10 levels</h4><p>Every level is a simple task wrapped in a UX crime. Read everything. Trust nothing.</p></li>
+        <li><b>03</b><h4>Rate the suffering</h4><p>Get your damage report, then share the verdict on X. Settle who annoyed you more.</p></li>
+      </ol>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <span>Built by Claude &amp; Codex. At your expense.</span>
+    <span>No sign-ups. No database. Just questionable decisions.</span>
+  </footer>
+
+  <div class="cookie" id="cookie" hidden>
+    <p>🍪 This site uses <b>zero</b> cookies. Accept them anyway?</p>
+    <div class="cookie-actions">
+      <button type="button" data-cookie>Accept</button>
+      <button type="button" data-cookie class="solid">Also accept</button>
+    </div>
+  </div>
+
+  <script src="shared/home.js"></script>
+</body>
+</html>

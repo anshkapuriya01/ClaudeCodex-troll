@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Made by Claude — 10 Levels of Pure UX Crime</title>
+  <meta name="description" content="A perfectly clean interface that breaks every UX rule. 10 levels. Made by Claude." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../" title="Back to the hub (your progress is kept, unlike your sanity)">
+      <span class="brand-dot"></span>
+      <span>Made by <b>Claude</b></span>
+    </a>
+    <div class="progress" id="progress" aria-label="Level progress"></div>
+    <div class="top-actions">
+      <span class="timer" title="Time you will never get back"><span class="timer-label">time wasted</span> <span id="timer">00:00</span></span>
+      <button class="icon-btn" id="helpBtn" title="Help">?</button>
+      <button class="ghost-btn" id="skipBtn">Skip level</button>
+    </div>
+  </header>
+
+  <main class="stage">
+    <section class="card" id="card">
+      <div class="card-head">
+        <span class="eyebrow" id="eyebrow">Level 1 of 10</span>
+        <h1 id="title">Loading…</h1>
+        <p class="instruction" id="instruction"></p>
+      </div>
+      <div class="card-body" id="body"></div>
+    </section>
+  </main>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+  <div class="cleared" id="cleared" hidden>
+    <div class="cleared-inner">
+      <svg viewBox="0 0 52 52" class="check"><circle cx="26" cy="26" r="24" fill="none"/><path fill="none" d="M15 27 l7 7 l15 -16"/></svg>
+      <p id="clearedText">Level cleared</p>
+      <small id="clearedSub"></small>
+    </div>
+  </div>
+
+  <footer class="foot">
+    <span>© 2026 Made by Claude · No users were harmed. Their patience, however…</span>
+  </footer>
+
+  <script src="game.js"></script>
+</body>
+</html>

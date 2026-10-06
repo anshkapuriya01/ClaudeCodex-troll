@@ -1,0 +1,38 @@
+// Run with: TROLL_DOM_MODULE=/absolute/path/to/happy-dom/lib/index.js node codex/tests/browser-flow.mjs
+// Uses a DOM test environment only; the shipped game has no dependencies.
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { levels, correctAnswer } from '../rules.mjs';
+if (!process.env.TROLL_DOM_MODULE) throw new Error('Set TROLL_DOM_MODULE to an installed happy-dom module.');
+const { Window } = await import(process.env.TROLL_DOM_MODULE);
+const window = new Window({url:'https://claude-codex.anshkapuriya.in/codex/'});
+const read = path => readFile(new URL(path,import.meta.url),'utf8');
+window.document.write(await read('../index.html'));
+window.levels=levels;window.correctAnswer=correctAnswer;
+window.eval((await read('../../shared/feedback.mjs')).replaceAll('export ','').replace("new URL('./feedback.css',import.meta.url).href", "'/shared/feedback.css'")+ '\nwindow.mountFeedback=mountFeedback;');
+window.eval((await read('../game.mjs')).replace("import { levels, correctAnswer } from './rules.mjs';",'const {levels,correctAnswer}=window;').replace("await import('../shared/feedback.mjs')", 'await Promise.resolve({mountFeedback:window.mountFeedback})'));
+const doc=window.document;
+const click=selector=>{const el=doc.querySelector(selector);assert.ok(el,selector);el.click();};
+const next=()=>click('#next');
+click('#start');click('[data-answer=yes]');assert.equal(JSON.parse(window.localStorage.getItem('codex-troll-progress-v1')).mistakes,1);click('[data-answer=no]');next();
+click('[data-word=blue]');next();
+doc.querySelector('#please').value='esaelp';doc.querySelector('#password').dispatchEvent(new window.Event('submit',{cancelable:true}));next();
+doc.querySelectorAll('.permissions input').forEach(el=>el.click());click('#preferences');next();
+doc.querySelector('#slider').value='37';click('#set-volume');next();
+click('#temptation');await new Promise(resolve=>setTimeout(resolve,4200));click('#collect');next();
+await new Promise(resolve=>setTimeout(resolve,3200));
+for(const n of ['3','1','4','2'])click(`#memory-buttons [data-answer="${n}"]`);next();
+click('#human');next();
+const terms=doc.querySelector('#terms');Object.defineProperties(terms,{scrollHeight:{value:1000},clientHeight:{value:200}});terms.scrollTop=800;terms.dispatchEvent(new window.Event('scroll'));click('[data-answer=disagree]');next();
+click('#finish-button');for(let i=0;i<3;i++)click('#confirmation [data-answer=confirm]');click('#confirmation [data-answer=cancel]');
+await new Promise(resolve=>setTimeout(resolve,50));
+assert.equal(JSON.parse(window.localStorage.getItem('codex-troll-progress-v1')).complete,true);
+click('.tf-ratings input[value="5"]');click('.tf-votes input[value="Codex"]');
+doc.querySelector('[name=comment]').value='<script>alert("oops")</script>';
+doc.querySelector('.tf-form').dispatchEvent(new window.Event('submit',{cancelable:true}));
+assert.equal(doc.querySelector('.tf-quote').textContent,'<script>alert("oops")</script>');assert.equal(doc.querySelector('.tf-quote script'),null);
+assert.ok(doc.querySelector('.tf-share').href.includes('claude-codex.anshkapuriya.in'));
+assert.equal(JSON.parse(window.localStorage.getItem('troll-feedback-codex')).rating,5);
+assert.ok(doc.querySelector('.tf-credit').textContent.includes('Codex'));
+await window.happyDOM.close();
+console.log('Complete ten-level DOM playthrough, wrong answer, local persistence, feedback, safe rendering and share link passed.');
