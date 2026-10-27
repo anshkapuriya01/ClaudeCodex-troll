@@ -39,32 +39,59 @@ What to write down from each: average shot length and how it changes, color/cont
 
 ## 2. B-roll video
 
-### Main sources (APIs available; scripts/fetch_broll.py supports them)
+### Sources (no API keys: you search, read the clip page, then download)
 
-**Pexels** (pexels.com/videos, API: pexels.com/api)
-- License: free for commercial and personal use, no attribution required (credit appreciated). Not allowed: selling unmodified copies, implying endorsement by people shown, using identifiable people in a bad light.
-- API: `GET https://api.pexels.com/videos/search?query=...&orientation=landscape|portrait|square&size=large|medium|small&per_page=1-80&page=N`. Header `Authorization: <key>` (no "Bearer"). The response has `videos[].video_files[]` with `link, width, height, fps, quality, file_type`, plus `videos[].user.name` and `videos[].url`.
-- Limits: about 200 requests/hour and 20,000/month by default. Show credit to Pexels where practical.
-- Strength: modern, well-graded, lots of 4K and slow-motion, good human/lifestyle and macro footage.
-
-**Pixabay** (pixabay.com/videos, API: pixabay.com/api/docs)
-- License: Pixabay Content License, free for commercial use with no attribution. Not allowed: selling unaltered copies, using it in a misleading/offensive way, and using recognizable trademarks/brands in a way that infringes them.
-- API: `GET https://pixabay.com/api/videos/?key=KEY&q=URL+encoded&video_type=all|film|animation&min_width=1920&per_page=3-200&safesearch=true&order=popular|latest`. Response: `hits[].videos.{large,medium,small,tiny}.{url,width,height,size}`, `hits[].pageURL`, `hits[].user`, `hits[].tags`.
-- Limits: about 100 requests/60 s. Cache results for 24 h. Don't hotlink; download files to the project.
-- Strength: huge library, lots of nature, abstract, animation, and older-looking footage.
-
-### Additional sources (manual download)
-
-| Source | License notes | Good for |
+| Source | License | Good for |
 |---|---|---|
-| **Mixkit** (mixkit.co/free-stock-video) | Mixkit Free License for commercial use, no attribution; some items are under a "restricted" license, check the clip page | Very clean, cinematic, curated |
-| **Coverr** (coverr.co) | Free for commercial use, no attribution; has an API (coverr.co/developers) | Lifestyle, tech, aerials |
+| **Pexels** (pexels.com/videos) | Pexels License: free commercial use, no attribution required (credit appreciated). Not allowed: selling unmodified copies, implying people shown endorse something, showing identifiable people in a bad light | Modern, well-graded, lots of 4K, slow motion, macro, people |
+| **Pixabay** (pixabay.com/videos) | Pixabay Content License: free commercial use, no attribution. Not allowed: selling unaltered copies, misleading use, using recognizable trademarks/brands | Huge library: nature, abstract, animation, older-looking footage |
+| **Mixkit** (mixkit.co/free-stock-video) | Mixkit License: most clips free for commercial use without attribution; some are "Restricted", check the clip page | Very clean, cinematic, curated |
+| **Coverr** (coverr.co) | Free for commercial use, no attribution | Lifestyle, tech, aerials |
 | **Videvo** (videvo.net) | Mixed: some free with attribution, some premium. Check every clip | Range |
 | **Vecteezy / Videezy** | Free tier often requires attribution | Use only if credited |
+| **Wikimedia Commons** (commons.wikimedia.org) | Per file: CC0, PD, CC-BY (credit), CC-BY-SA (share-alike: your whole video would have to be CC-BY-SA, so avoid unless that's fine) | Specific real-world subjects, science, history. `grab_clip.py search --source commons` |
+| **Internet Archive / Prelinger Archives** (archive.org/details/prelinger) | Per item; many public domain. Check the license field | Vintage, industrial, documentary texture. `grab_clip.py search --source archive` |
 | **NASA Image and Video Library** (images.nasa.gov) | Generally not copyrighted; no endorsement implied; NASA logo rules apply | Space, launches, Earth |
-| **Internet Archive: Prelinger Archives** (archive.org/details/prelinger) | Many items public domain; check each | Vintage, industrial, documentary texture |
-| **Wikimedia Commons** (commons.wikimedia.org) | Per-file: CC0, CC-BY, CC-BY-SA, PD. Credit as required | Specific real-world subjects |
 | **Your own screen recordings / renders** | Yours | Product UI, code, data |
+
+### Finding clips without API keys
+
+Work like a researcher with a browser: search, open candidate pages, read them, then download only what you chose.
+
+1. **Web search with a site filter** (your web search tool). Each hit is usually one clip page:
+   ```
+   site:pexels.com/video hands folding paper
+   site:pixabay.com/videos origami
+   site:mixkit.co/free-stock-video paper
+   site:coverr.co/videos drawbridge
+   site:commons.wikimedia.org filetype video mimosa pudica
+   ```
+2. **The site's own search page** (your fetch tool, or a browser tool if the site needs JavaScript or shows a bot check):
+   ```
+   https://www.pexels.com/search/videos/<query>/          (spaces as %20; add ?orientation=landscape|portrait)
+   https://pixabay.com/videos/search/<query>/
+   https://mixkit.co/free-stock-video/<one-word-tag>/     (e.g. /paper/, /bridge/, /hands/)
+   https://coverr.co/s?q=<query>
+   https://commons.wikimedia.org/w/index.php?search=<query>+filetype:video
+   https://archive.org/search?query=<query>&and[]=mediatype:"movies"
+   ```
+   Collect the clip-page links from the results, not the thumbnails.
+3. **Keyless archive search** with license metadata:
+   ```bash
+   python3 scripts/grab_clip.py search --source commons --query "paper folding" --orientation landscape
+   python3 scripts/grab_clip.py search --source archive --query "bridge opening" --download 2
+   ```
+   (Results with NC/ND licenses are filtered out automatically.)
+4. **Read the clip page** before downloading: title, description, duration, resolution, author, and the license line. Look at the preview or poster image for logos and watermarks.
+5. **Download it**:
+   ```bash
+   python3 scripts/grab_clip.py get "<clip page url>" --name hands-fold-paper --min-width 1920 --orientation landscape
+   ```
+   - It picks the smallest file at or above `--min-width` from the links in the page (sizes are guessed from file names like `..._1920_1080_...` or `...-1080p.mp4`), then checks the real size with ffprobe. `--list` prints every link it found.
+   - If the page's HTML has no file links (JavaScript-only pages), it tries yt-dlp. If that also fails, open the page with a browser tool, click the free download for the size you want, and pass the resulting direct file URL:
+     `grab_clip.py get "<direct .mp4 url>" --page "<clip page url>" --author "Name" --license "Pexels License"`
+   - Sites that answer scripts with a bot check, captcha or login wall: don't try to get around it. Use a browser tool if the session has one, or use another source.
+6. **Pace and volume**: only download clips you've picked, one at a time (the script pauses between archive downloads). Never crawl whole search result pages automatically.
 
 ### Search tips
 - Describe what's literally visible: subject + action + framing + speed. "hands folding paper macro slow motion", "hinge closing close up", "aerial bridge opening".
@@ -87,7 +114,7 @@ What to write down from each: average shot length and how it changes, color/cont
 | **ccMixter** (ccmixter.org) | Per-track CC; check NC |
 | **Incompetech (Kevin MacLeod)** | CC-BY 4.0, credit required; very widely used, so it may sound familiar |
 
-Search by mood and instrumentation, not genre labels alone: "minimal piano pulse", "cinematic build", "ambient tech pulse", "percussive drums hybrid trailer", "lofi warm". Check that the track has a build and a clear hit you can land the turn on.
+Find tracks the same way as clips: web search with `site:pixabay.com/music`, `site:mixkit.co/free-stock-music`, or the site's search page; listen-check by reading the page (BPM, mood, duration), then download with `grab_clip.py get "<track page>" --kind audio --out audio --name <name>`. Search by mood and instrumentation, not genre labels alone: "minimal piano pulse", "cinematic build", "ambient tech pulse", "percussive drums hybrid trailer", "lofi warm". Check that the track has a build and a clear hit you can land the turn on.
 
 ---
 
@@ -95,14 +122,14 @@ Search by mood and instrumentation, not genre labels alone: "minimal piano pulse
 
 | Source | License notes |
 |---|---|
-| **Freesound** (freesound.org, API: freesound.org/docs/api) | Per-sound: CC0, CC-BY (credit), CC-BY-NC (non-commercial only). Filter with `license:"Creative Commons 0"` |
+| **Freesound** (freesound.org; search page filter "CC0") | Per-sound: CC0, CC-BY (credit), CC-BY-NC (non-commercial only). Filter with `license:"Creative Commons 0"` |
 | **Mixkit SFX** (mixkit.co/free-sound-effects) | Free, no attribution |
 | **Pixabay Sound Effects** (pixabay.com/sound-effects) | Pixabay Content License |
 | **Zapsplat** (zapsplat.com) | Free account; free tier requires attribution |
 | **Sonniss GDC bundles** (sonniss.com/gameaudiogdc) | Royalty-free, no attribution; large professional packs, downloaded once |
 | **BBC Sound Effects** (sound-effects.bbcrewind.co.uk) | Personal, educational, research use only, so **not** for commercial or public promo work |
 
-Useful search terms: "whoosh short", "swish", "riser", "reverse cymbal", "sub drop", "impact cinematic", "boom hit", "paper fold", "paper crinkle", "hinge creak", "glass crack", "camera shutter", "click mechanical", "room tone".
+Download SFX with `grab_clip.py get "<sound page>" --kind audio --out audio/sfx --name <name>` (Freesound needs a free login to download originals; its previews are fine for timing tests only). Useful search terms: "whoosh short", "swish", "riser", "reverse cymbal", "sub drop", "impact cinematic", "boom hit", "paper fold", "paper crinkle", "hinge creak", "glass crack", "camera shutter", "click mechanical", "room tone".
 
 ---
 

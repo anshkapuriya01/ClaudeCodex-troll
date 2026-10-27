@@ -1,6 +1,6 @@
 ---
 name: broll-video-editor
-description: Produce professional, launch-film-quality short videos (10–90 s) by cutting real stock B-roll, royalty-free music and SFX, and restrained motion typography together with ffmpeg. Covers concept and visual-metaphor brainstorming, studying motion-graphics references frame by frame (ffmpeg at 2 fps), finding and downloading licensed B-roll from Pexels/Pixabay/Mixkit/Coverr, sourcing music and sound effects, editing to the beat, grading, and an anti-"AI slop" quality pass. Use this skill whenever the user wants a promo, launch video, product teaser, trend/news explainer, social reel, hype edit, sizzle reel, montage, or "a video like Apple/Anthropic launch videos", or asks for B-roll, stock footage, match cuts, kinetic type, or a video about a trending topic, even if they never say "B-roll" or "ffmpeg".
+description: Produce professional, launch-film-quality short videos (10–90 s) by cutting real stock B-roll, royalty-free music and SFX, and restrained motion typography together with ffmpeg. Covers concept and visual-metaphor brainstorming, studying motion-graphics references frame by frame (ffmpeg at 2 fps), finding and downloading licensed B-roll on its own with web search (no API keys) from Pexels, Pixabay, Mixkit, Coverr, Wikimedia Commons and the Internet Archive, sourcing music and sound effects, editing to the beat, grading, and an anti-"AI slop" quality pass. Use this skill whenever the user wants a promo, launch video, product teaser, trend/news explainer, social reel, hype edit, sizzle reel, montage, or "a video like Apple/Anthropic launch videos", or asks for B-roll, stock footage, match cuts, kinetic type, or a video about a trending topic, even if they never say "B-roll" or "ffmpeg".
 ---
 
 # B-roll Video Editor
@@ -18,7 +18,7 @@ The core idea, taken from how real promo teams work: **find one physical sensati
 | `references/anti-slop.md` | Phase 6 and before delivery: the checklist of AI tells and how to fix each one |
 | `references/ffmpeg-cookbook.md` | Phases 3–7: tested commands for frames, conforming, cutting, speed ramps, text, grading, audio, export |
 | `scripts/extract_frames.sh` | Study a reference or a downloaded clip at 2 fps, plus a contact sheet you can view in one image |
-| `scripts/fetch_broll.py` | Search and download B-roll from Pexels / Pixabay APIs with a license manifest |
+| `scripts/grab_clip.py` | Download a clip you found (from its page or direct link), or search Wikimedia Commons / Internet Archive; logs the license. No API keys |
 | `scripts/conform.sh` | Make every clip the same resolution, frame rate, pixel format, with audio stripped |
 | `scripts/beats.py` | Tempo, beat times, bar starts and strongest hits of the music track |
 | `scripts/render_edl.py` | Render the picture from a text edit list, frame-exact, with a cut-vs-beat report |
@@ -32,12 +32,13 @@ Read a reference file at the start of the phase that needs it, not all of them u
 ```bash
 ffmpeg -version | head -1; ffprobe -version | head -1
 python3 -c "import yt_dlp" 2>/dev/null && echo yt-dlp ok || pip install yt-dlp
-echo "PEXELS=${PEXELS_API_KEY:+set} PIXABAY=${PIXABAY_API_KEY:+set}"
+for h in www.pexels.com pixabay.com mixkit.co coverr.co commons.wikimedia.org archive.org; do
+  echo "$h $(curl -s -o /dev/null -w '%{http_code}' -m 10 -A 'Mozilla/5.0' https://$h/)"; done
 ```
 
 - ffmpeg must have `libx264` and `drawtext` (`ffmpeg -filters | grep drawtext`). If drawtext is missing, render titles as PNGs (see the cookbook) instead.
-- B-roll APIs need free keys. If `PEXELS_API_KEY` / `PIXABAY_API_KEY` are not set, ask the user for one (both are free at pexels.com/api and pixabay.com/api/docs) or fall back to manual downloads from the sites in `references/sources.md`. Never invent a key and never scrape a site whose terms forbid it.
-- Test network access to the sources (`curl -sI https://api.pexels.com`) before planning around them. If a host is blocked, tell the user which one and continue with what is reachable.
+- No API keys are needed. You find footage yourself with your web search and fetch tools (and a browser tool, if the session has one), then download the clips you picked with `scripts/grab_clip.py`.
+- The loop above shows which sources this machine can reach (200/3xx = reachable; 403 often means a bot check that a browser tool may pass). Plan around the reachable ones and tell the user which were blocked.
 
 Make one project folder and keep everything in it:
 
@@ -117,20 +118,28 @@ Borrow the *grammar* (pacing, framing, type behavior), never the footage, logo, 
 
 Read the B-roll and license sections of `references/sources.md`.
 
-1. **Search wide, with several phrasings per shot.** Stock libraries are tagged by literal content, so search for what is literally on screen, not the idea: "paper folding macro", "origami hands close up", "knee bending slow motion", "door closing dark", not "fragility". Try 2–4 queries per shot and both orientations if needed.
+1. **Search wide, with several phrasings per shot.** Stock libraries are tagged by literal content, so search for what is literally on screen, not the idea: "paper folding macro", "origami hands close up", "knee bending slow motion", "door closing dark", not "fragility". Try 2–4 phrasings per shot. You do the searching yourself, no keys; `references/sources.md` → "Finding clips without API keys" has the exact search URLs and query patterns. In short:
+   - **Web search with a site filter**: `site:pexels.com/video paper folding`, `site:mixkit.co paper fold`, `site:coverr.co bridge`, `site:pixabay.com/videos origami`. Each result is a single clip page.
+   - **Site search pages**: open the site's own search URL (e.g. `https://www.pexels.com/search/videos/paper%20fold/`, `https://mixkit.co/free-stock-video/paper/`) with your fetch or browser tool and collect clip-page links.
+   - **Keyless archives** (license metadata included):
+     ```bash
+     python3 scripts/grab_clip.py search --source commons --query "origami folding"
+     python3 scripts/grab_clip.py search --source archive --query "drawbridge opening"
+     ```
+   Read each candidate's page (title, description, preview) before downloading, and check its license there.
+2. **Download the clips you picked**, one page at a time:
    ```bash
-   python3 scripts/fetch_broll.py --query "paper folding macro" --source pexels,pixabay \
-     --orientation landscape --min-width 1920 --per-query 6 --out broll/raw --manifest licenses.json
+   python3 scripts/grab_clip.py get "<clip page url>" --name paper-fold-macro --min-width 1920 --orientation landscape
    ```
-   The script downloads the best file at or above `--min-width`, skips duplicates, and appends source/author/license/url to `licenses.json`. Run it once per query; it is cheap. Keep total downloads proportionate (often 40–80 clips for a 30 s edit) and respect the API rate limits listed in `sources.md`.
-2. **Look at every candidate.** Do not pick clips from titles or thumbnails. For each clip:
+   It reads the page, finds the video file links, downloads the smallest file at or above `--min-width`, falls back to yt-dlp, and appends page, author, license, size and fps to `licenses.json`. If you only have a direct file link (for example from a browser tool's network view or a "Download" button), pass it with `--page <clip page> --author ... --license ...`. If a page shows a bot check or a login wall, don't try to get around it; use a browser tool if one is available, or another source. Download at a human pace, only clips you've actually chosen (often 30–60 for a 30 s edit), and never bulk-crawl a site.
+3. **Look at every download.** Do not pick clips from titles or thumbnails. For each clip:
    ```bash
    bash scripts/extract_frames.sh broll/raw/<clip>.mp4 /tmp/check_<clip> 2
    ```
    View the contact sheet. Keep a clip only if it has at least ~1.5 s of usable, stable, in-focus footage, the motion matches the shot list's direction, it has no visible watermark, logo, text, or recognizable brand (trademarked content is often excluded from stock licenses), and it fits the color world of the rest. Note the good in/out points (`clip, in, out, note`) in `shotlist.md`.
-3. **Reject generic stock.** Smiling people pointing at laptops, handshakes, glowing brains, binary code rain, and "futuristic HUD" overlays read as filler instantly. A slightly odd but real and specific shot always beats a polished generic one.
-4. **Mix sources and textures.** Combine sources and shooting styles (macro, aerial, handheld, locked-off, slow motion) so the edit doesn't feel like one stock pack. Avoid using more than two clips from the same uploader back to back.
-5. **Conform everything** before editing so cuts and concatenation never glitch:
+4. **Reject generic stock.** Smiling people pointing at laptops, handshakes, glowing brains, binary code rain, and "futuristic HUD" overlays read as filler instantly. A slightly odd but real and specific shot always beats a polished generic one.
+5. **Mix sources and textures.** Combine sources and shooting styles (macro, aerial, handheld, locked-off, slow motion) so the edit doesn't feel like one stock pack. Avoid using more than two clips from the same uploader back to back.
+6. **Conform everything** before editing so cuts and concatenation never glitch:
    ```bash
    bash scripts/conform.sh broll/raw broll/conformed 1920 1080 30
    ```
@@ -142,7 +151,7 @@ If a needed shot doesn't exist in any free library after honest searching, chang
 
 Sound is half of what makes a cut feel professional, and the part AI edits most often skip.
 
-1. **Music first.** Pick the track before editing; the cut follows the music, not the reverse. Use the sources in `references/sources.md` (Pixabay Music, Mixkit, Uppbeat free tier, YouTube Audio Library for YouTube, Free Music Archive with a per-track license check). Record each track in `licenses.json`.
+1. **Music first.** Pick the track before editing; the cut follows the music, not the reverse. Use the sources in `references/sources.md` (Pixabay Music, Mixkit, Uppbeat free tier, YouTube Audio Library for YouTube, Free Music Archive with a per-track license check). Find tracks yourself with web search and the sites' search pages, then download with `python3 scripts/grab_clip.py get "<track page>" --kind audio --out audio --name <name>`, which also records the license in `licenses.json`.
    - Quiet premium: sparse piano, warm pads, soft pulses, around 70–100 BPM.
    - Hype: clear kick, around 120–140 BPM, a drop you can land the turn on.
    - Pick a track whose structure fits your arc (an intro, a build, a hit). Trim the music to your length by cutting on a bar line, never by a fade in the middle of a phrase.
