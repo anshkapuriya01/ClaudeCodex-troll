@@ -8,6 +8,7 @@ Two AIs were each asked to build a 10-level web game that breaks every rule of U
 | `made-by-claude/` | The 10-level game made by Claude |
 | `codex/` | The 10-level game made by Codex |
 | `shared/` | Feedback and X-sharing flow (made by Codex), home screen styles and assets |
+| `.claude/skills/broll-video-editor/` | Claude skill for cutting professional B-roll promo videos with ffmpeg (not part of the site) |
 
 Everything is static HTML, CSS and JS with no build step and no backend. Progress and feedback stay in the player's browser.
 
